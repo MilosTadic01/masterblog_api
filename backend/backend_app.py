@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, abort
+from werkzeug.exceptions import BadRequest
 from flask_cors import CORS
 from utils.utils import Utils
 
@@ -10,9 +11,12 @@ CORS(app)  # This will enable CORS for all routes
 def get_posts_or_add_post():
     if request.method == 'GET':
         return jsonify(Utils.load_storage_data())
-    data = request.get_json()
-    new_post_title = data.get("title", '')
-    new_post_content = data.get("content", '')
+    try:
+        post_data = request.get_json()
+    except BadRequest:
+        abort(400)
+    new_post_title = post_data.get("title", '')
+    new_post_content = post_data.get("content", '')
     if not new_post_title or not new_post_content:
         abort(400)
     new_post_id = Utils.get_unique_id()
@@ -45,9 +49,14 @@ def update_post(post_id: int):
     old_bp dict, then json.dumps() with new dict. Ret json updated_bp & 200"""
     if post_id not in Utils.list_extant_ids():
         abort(404)
+    try:
+        updates = request.get_json()
+        if updates is None:
+            raise BadRequest
+    except BadRequest:
+        abort(400)
     blog_posts = Utils.load_storage_data()
     old_bp = next(bp for bp in blog_posts if bp['id'] == post_id)
-    updates = request.get_json()
     if "title" not in updates or "content" not in updates:
         abort(400)
     updated_bp = {}
@@ -66,7 +75,10 @@ def update_post(post_id: int):
 @app.errorhandler(400)
 def error_bad_request(error):
     """Return json indicating which key was missing from the body & 400."""
-    data = request.get_json()
+    try:
+        data = request.get_json()
+    except ValueError as e:
+        return jsonify(e), 400
     missing_fields = []
     if not data.get("content"):
         missing_fields.append("content")
