@@ -77,8 +77,9 @@ def error_bad_request(error):
     """Return json indicating which key was missing from the body & 400."""
     try:
         data = request.get_json()
-    except ValueError as e:
-        return jsonify(e), 400
+    except BadRequest as e:
+        err_msg = str(e)
+        return jsonify({"Error": err_msg}), 400
     missing_fields = []
     if not data.get("content"):
         missing_fields.append("content")
