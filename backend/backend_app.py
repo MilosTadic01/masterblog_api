@@ -72,6 +72,32 @@ def update_post(post_id: int):
     return jsonify(updated_bp), 200
 
 
+@app.route('/api/posts/search')
+def search_post():
+    """Returns a list of blog posts that match at least one of ["title", "id",
+    "content"] since not specified by the assignment whether multiple queries
+    should be treated as AND or OR."""
+    queries = request.args
+    blog_posts = Utils.load_storage_data()
+    matches = []
+    for qr_k, qr_v in queries.items(multi=True):
+        if qr_k.lower() == "id":
+            try:
+                qr_v = int(qr_v)
+            except ValueError:
+                continue
+        for bp in blog_posts:
+            for bp_k, bp_v in bp.items():
+                # comparing either <int == int> or <str in str>
+                if (qr_k.lower() in bp_k.lower() and
+                    (Utils.are_both_int(qr_v, bp_v) and qr_v == bp_v) or
+                    (Utils.are_neither_int(qr_v, bp_v) and
+                     qr_v.lower() in bp_v.lower())):
+                    if bp not in matches:
+                        matches.append(bp)
+    return jsonify(matches)
+
+
 @app.errorhandler(400)
 def error_bad_request(error):
     """Return json indicating which key was missing from the body & 400."""

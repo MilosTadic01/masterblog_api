@@ -46,3 +46,11 @@ class Utils:
         with open(DATA_PATH, "w") as fd:
             str_to_write = json.dumps(blog_posts)
             fd.write(str_to_write)
+
+    @staticmethod
+    def are_both_int(value1, value2):
+        return isinstance(value1, int) and isinstance(value2, int)
+
+    @staticmethod
+    def are_neither_int(value1, value2):
+        return isinstance(value1, str) and isinstance(value2, str)
