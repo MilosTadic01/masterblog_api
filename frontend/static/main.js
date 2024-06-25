@@ -27,7 +27,9 @@ function loadPosts() {
             data.forEach(post => {
                 const postDiv = document.createElement('div');
                 postDiv.className = 'post';
-                postDiv.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p>
+                postDiv.innerHTML = `<h2>${post.title}</h2>
+                                    <p>${post.content}</p>
+                                    <footer>${post.date} by <span>${post.author}</span></footer>
                 <button onclick="deletePost(${post.id})">Delete</button>`;
                 postContainer.appendChild(postDiv);
             });
