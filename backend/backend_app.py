@@ -7,10 +7,28 @@ app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 
 
-@app.route('/api/posts', methods=['GET', 'POST'])
-def get_posts_or_add_post():
-    if request.method == 'GET':
-        return jsonify(Utils.load_storage_data())
+@app.route('/api/posts')
+def get_posts():
+    """The "List" endpoint for 'GET' request.method. As per assignment, if
+    "sort" and "direction" are in the query string but have illegal values,
+    abort(400) (happens from within the Utils method). If there are multiple
+    instances of "sort" or "direction" in query string, apply last."""
+    blog_posts = Utils.load_storage_data()
+    sorting_crit, sorting_in_rev = Utils.validate_sort_query(request.args)
+    if sorting_crit:
+        blog_posts = sorted(blog_posts, key=lambda
+                            bp: bp[sorting_crit].lower(),
+                            reverse=sorting_in_rev)
+    # if no 'sort' in query string, but yes 'direction', sort by 'id'
+    elif sorting_in_rev is not None:
+        blog_posts = sorted(blog_posts, key=lambda bp: bp['id'],
+                            reverse=sorting_in_rev)
+    return jsonify(blog_posts), 200
+
+
+@app.route('/api/posts', methods=['POST'])
+def add_post():
+    """The "Add" endpoint."""
     try:
         post_data = request.get_json()
     except BadRequest:
@@ -95,12 +113,24 @@ def search_post():
                      qr_v.lower() in bp_v.lower())):
                     if bp not in matches:
                         matches.append(bp)
-    return jsonify(matches)
+    return jsonify(matches), 200
 
 
 @app.errorhandler(400)
 def error_bad_request(error):
-    """Return json indicating which key was missing from the body & 400."""
+    """If request method was 'GET', then query string was off, return json
+    informing listing the bad sorting parameters. Else, method was 'PUT',
+    return json indicating which key was missing from the body & 400."""
+    if request.method == 'GET':
+        bad_params = {}
+        for k, v in request.args.items():
+            if k.lower() == "sort" and (v.lower() != "title" and
+                                        v.lower() != "content"):
+                bad_params.update({"for 'sort'": v.lower()})
+            if k.lower() == "direction" and (v.lower() != "asc" and
+                                             v.lower() != "desc"):
+                bad_params.update({"for 'direction'": v.lower()})
+        return jsonify({"Error 400: Illegal sorting parameters": bad_params}), 400
     try:
         data = request.get_json()
     except BadRequest as e:
@@ -111,14 +141,14 @@ def error_bad_request(error):
         missing_fields.append("content")
     if not data.get("title"):
         missing_fields.append("title")
-    return jsonify({"missingFields": missing_fields}), 400
+    return jsonify({"Error 400: missingFields": missing_fields}), 400
 
 
 @app.errorhandler(404)
 def error_not_found(error):
     """Return json informing user the endpoint was not found & 404."""
-    err_msg = f"404: {request.path} Not Found"
-    return jsonify({"Error": err_msg}), 404
+    err_msg = f"{request.path} Not Found"
+    return jsonify({"Error 404: ": err_msg}), 404
 
 
 if __name__ == '__main__':

@@ -1,1 +1,1 @@
-[{"id": 1, "title": "First post", "content": "This is the first post."}, {"id": 2, "title": "Fourth post", "content": "This is the fourth post."}, {"content": "apples", "title": "Updated", "id": 3}]
+[{"id": 1, "title": "Ze fourth post", "content": "Apples"}, {"id": 3, "title": "Der zweite Pfosten", "content": "Cranberries"}, {"id": 4, "title": "A post", "content": "Durian"}, {"id": 2, "title": "The third post", "content": "Bananas (but id == 2)"}]
