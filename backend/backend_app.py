@@ -6,6 +6,9 @@ from utils.utils import Utils
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 
+BLOGPOST_STR_COMPONENTS = ["content", "title", "author", "date"]
+SORTING_DIRS = ["asc", "desc"]
+
 
 @app.route('/api/posts')
 def get_posts():
@@ -16,30 +19,36 @@ def get_posts():
     blog_posts = Utils.load_storage_data()
     sorting_crit, sorting_in_rev = Utils.validate_sort_query(request.args)
     if sorting_crit:
-        blog_posts = sorted(blog_posts, key=lambda
-                            bp: bp[sorting_crit].lower(),
-                            reverse=sorting_in_rev)
+        try:
+            blog_posts = sorted(blog_posts, key=lambda
+                                bp: bp[sorting_crit].lower(),
+                                reverse=sorting_in_rev)
+        except KeyError:  # what is the diff between thoroughness and paranoia
+            print("Database has incomplete entries, abort sorting.")
     # if no 'sort' in query string, but yes 'direction', sort by 'id'
     elif sorting_in_rev is not None:
-        blog_posts = sorted(blog_posts, key=lambda bp: bp['id'],
-                            reverse=sorting_in_rev)
+        try:
+            blog_posts = sorted(blog_posts, key=lambda bp: bp['id'],
+                                reverse=sorting_in_rev)
+        except KeyError:
+            print("Someone's manually deleted ids from DB alert code yellow.")
     return jsonify(blog_posts), 200
 
 
 @app.route('/api/posts', methods=['POST'])
 def add_post():
-    """The "Add" endpoint."""
+    """The "Add" endpoint. Complains about missing required fields, incl. when
+    any value is ''. Ignores illegal fields, only cares about w/ it needs."""
     try:
         post_data = request.get_json()
     except BadRequest:
         abort(400)
-    new_post_title = post_data.get("title", '')
-    new_post_content = post_data.get("content", '')
-    if not new_post_title or not new_post_content:
-        abort(400)
-    new_post_id = Utils.get_unique_id()
-    new_bp = {"id": new_post_id,
-              "title": new_post_title, "content": new_post_content}
+    new_bp = {"id": Utils.get_unique_id()}
+    for component in BLOGPOST_STR_COMPONENTS:
+        value = post_data.get(component, '')
+        if not value:
+            abort(400)
+        new_bp.update({component: value})
     blog_posts = Utils.load_storage_data()
     blog_posts.append(new_bp)
     Utils.write_data_to_storage(blog_posts)
@@ -75,14 +84,17 @@ def update_post(post_id: int):
         abort(400)
     blog_posts = Utils.load_storage_data()
     old_bp = next(bp for bp in blog_posts if bp['id'] == post_id)
-    if "title" not in updates or "content" not in updates:
-        abort(400)
     updated_bp = {}
-    for k, v in updates.items():
+    for k, v in ((k.lower(), v) for k, v in updates.items()):
+        if k not in BLOGPOST_STR_COMPONENTS:
+            abort(400)
         if not v:
             updated_bp.update({k: old_bp[k]})
         else:
             updated_bp.update({k: v})
+    for component in BLOGPOST_STR_COMPONENTS:  # fetch the non-updated too
+        if component not in [k.lower() for k in updates.keys()]:
+            updated_bp.update({component: old_bp[component]})
     updated_bp.update({"id": post_id})
     blog_posts.remove(old_bp)
     blog_posts.append(updated_bp)
@@ -118,30 +130,38 @@ def search_post():
 
 @app.errorhandler(400)
 def error_bad_request(error):
-    """If request method was 'GET', then query string was off, return json
-    informing listing the bad sorting parameters. Else, method was 'PUT',
-    return json indicating which key was missing from the body & 400."""
+    """Handles bad sorting params for 'GET', missing info for 'POST'
+    and bad keys for 'PUT'."""
     if request.method == 'GET':
         bad_params = {}
-        for k, v in request.args.items():
-            if k.lower() == "sort" and (v.lower() != "title" and
-                                        v.lower() != "content"):
-                bad_params.update({"for 'sort'": v.lower()})
-            if k.lower() == "direction" and (v.lower() != "asc" and
-                                             v.lower() != "desc"):
-                bad_params.update({"for 'direction'": v.lower()})
-        return jsonify({"Error 400: Illegal sorting parameters": bad_params}), 400
-    try:
-        data = request.get_json()
-    except BadRequest as e:
-        err_msg = str(e)
-        return jsonify({"Error": err_msg}), 400
-    missing_fields = []
-    if not data.get("content"):
-        missing_fields.append("content")
-    if not data.get("title"):
-        missing_fields.append("title")
-    return jsonify({"Error 400: missingFields": missing_fields}), 400
+        for k, v in ((k.lower(), v.lower()) for k, v in request.args.items()):
+            if k == "sort" and v not in BLOGPOST_STR_COMPONENTS:
+                bad_params.update({"for 'sort'": v})
+            if k == "direction" and v not in SORTING_DIRS:
+                bad_params.update({"for 'direction'": v})
+        return jsonify({"Error 400: Illegal sorting params": bad_params}), 400
+    else:  # for 'POST' and 'PUT'
+        try:
+            data = request.get_json()
+        except BadRequest as e:
+            err_msg = str(e)
+            return jsonify({"Error 400: ": err_msg}), 400
+        err_dict = {}
+        if request.method == 'POST':
+            missing_fields = []
+            for component in BLOGPOST_STR_COMPONENTS:
+                if component not in [k.lower() for k in data.keys()]:
+                    missing_fields.append(component)
+            if missing_fields:
+                err_dict.update({"Error 400: missingFields": missing_fields})
+        illegal_fields = []  # for both 'POST' and 'PUT'
+        for k, v in data.items():
+            if (k.lower() not in BLOGPOST_STR_COMPONENTS and
+                    k.lower() != "id"):
+                illegal_fields.append(k)
+        if illegal_fields:
+            err_dict.update({"Error 400: illegal fields": illegal_fields})
+        return jsonify(err_dict), 400
 
 
 @app.errorhandler(404)

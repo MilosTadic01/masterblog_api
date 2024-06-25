@@ -5,6 +5,7 @@ from flask import abort
 from typing import List, Dict
 
 DATA_PATH = "data/posts.json"
+BLOGPOST_STR_COMPONENTS = ["content", "title", "author", "date"]
 
 
 class Utils:
@@ -66,7 +67,7 @@ class Utils:
         if queries:
             for k, v in queries.items(multi=True):
                 if k.lower() == "sort":
-                    if v.lower() not in ["title", "content"]:
+                    if v.lower() not in BLOGPOST_STR_COMPONENTS:
                         abort(400)
                     sorting_crit = v.lower()
                 elif k.lower() == "direction":
