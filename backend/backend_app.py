@@ -38,7 +38,7 @@ def get_posts():
 @app.route('/api/posts', methods=['POST'])
 def add_post():
     """The "Add" endpoint. Complains about missing required fields, incl. when
-    any value is ''. Ignores illegal fields, only cares about w/ it needs."""
+    any value is '', as well as about illegal fields present in Body."""
     try:
         post_data = request.get_json()
     except BadRequest:
