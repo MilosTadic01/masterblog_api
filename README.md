@@ -36,9 +36,9 @@ The frontend is running on port 5001. The backend is running on port 5002. If on
 2. The URL and the port to "Load Posts" from is `http://localhost:5002/api`
 3. You are able to view posts, add posts and delete posts.
 ### Backend user interfacing (Postman) instructions
-#### "List" endpoint
+#### 1. "List" endpoint
 Set the request to **GET**. Paste `http://localhost:5002/api/posts` in Postman's URL bar and send.
-#### "Add" endpoint
+#### 2. "Add" endpoint
 Set the request to **POST**, navigate below the URL bar to body, then below that to raw, set to JSON from the dropdown and
 enter a JSON-format dictionary like so (case-insensitive):
 ```json
@@ -51,10 +51,10 @@ enter a JSON-format dictionary like so (case-insensitive):
 ```
 Send. A unique ID will be generated, which will be visible in the returned JSON upon success, as well as when you make
 a GET request to the "List" endpoint in the future. The ID is crucial to successfully deleting/updating a post.
-#### "Delete" endpoint
+#### 3. "Delete" endpoint
 Set the request to **DELETE** and paste the following into Postman's URL bar:
 `http://localhost:5002/api/posts/<ID of the post to delete>`. Send.
-#### "Update" endpoint
+#### 4. "Update" endpoint
 Set the request to **PUT** and paste the following into Postman's URL bar:
 `http://localhost:5002/api/posts/<ID of the post to update>`.
 
@@ -68,7 +68,7 @@ enter a JSON-format dictionary like so:
 }
 ```
 Send. Feel free to only include the fields which are being updated. The ID will be retained.
-#### "Search" Endpoint
+#### 5. "Search" Endpoint
 Set the request to **GET** and paste this URL into Postman's URL bar: `http://localhost:5002/api/posts/search?`.
 In the 'Params' tab, include blog post fields to search for (case-insensitive). They will be automatically formatted
 into the query string.
@@ -77,11 +77,11 @@ into the query string.
 
 Send. The search returns all entries which match ANY of the criteria, rather than only returning entries
 which match all of them. 
-#### "Sort" Endpoint
+#### 6. Sorting params - an extended functionality of "List" endpoint
 This is just the **"List"** endpoint with optional sorting parameters.
 Set the request to **GET**. Paste `http://localhost:5002/api/posts` in Postman's URL bar. In the 'Params' tab, include
-keys `sort` and/or `direction`. As the value for the sort key, enter a blog post field (title, author, content, date)
-other than ID. Optionally, specify the `direction` as `asc` or `desc` based on preference. If only a `direction` key is
+keys `sort` and/or `direction`. As the value for the sort key, enter a blog post field other than ID (title, author, content, date).
+Optionally, specify the `direction` as `asc` or `desc` based on preference. If only a `direction` key is
 included, without `sort`, then the specified direction will apply to blog post IDs. 
 
 
