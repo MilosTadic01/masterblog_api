@@ -11,7 +11,7 @@ and establishing a JS frontend which taps into select endpoints.
 * endpoint routing
 * json db management
 * templating / dynamic webpage generation via JS and Jinja2
-* 
+* frontend interfacing with the backend
 * error management / jsonified return values and status codes
 
 ## Installation
@@ -24,21 +24,21 @@ To install this project, clone the repository and install the dependencies liste
 
 ## Usage/Examples
 
-### Instructions
+### General instructions
 
-1. Run backend/backend_app.py and frontend/frontend_app.py simultaneously.
+1. Run `backend/backend_app.py` and `frontend/frontend_app.py` simultaneously, preferably through an IDE.
 
-From here on out you can choose to interact with the frontend (limited interface) or with  the backend via postman.
-The frontend is running on port 5001. The backend is running on port 5002. 
+From here on out you can choose to interact with the frontend (limited interface) or with  the backend via Postman.
+The frontend is running on port 5001. The backend is running on port 5002. If only interacting with the backend (more endpoints) through Postman, you only need to run `backend/backend_app.py`.
 
-#### Webpage instructions
+### Webpage instructions
 1. Paste `http://127.0.0.1:5001/` in the URL bar of a browser
 2. The URL and the port to "Load Posts" from is `http://localhost:5002/api`
 3. You are able to view posts, add posts and delete posts.
-#### Postman instructions
-##### "List" endpoint
+### Postman instructions
+#### "List" endpoint
 Set the request to **GET**. Paste `http://localhost:5002/api/posts` in Postman's URL bar and send.
-##### "Add" endpoint
+#### "Add" endpoint
 Set the request to **POST**, navigate below the URL bar to body, then below that to raw, set to JSON from the dropdown and
 enter a JSON-format dictionary like so (case-insensitive):
 ```json
@@ -51,29 +51,33 @@ enter a JSON-format dictionary like so (case-insensitive):
 ```
 Send. A unique ID will be generated, which will be visible in the returned JSON upon success, as well as when you make
 a GET request to the "List" endpoint in the future. The ID is crucial to successfully deleting/updating a post.
-##### "Delete" endpoint
+#### "Delete" endpoint
 Set the request to **DELETE** and paste the following into Postman's URL bar:
 `http://localhost:5002/api/posts/<ID of the post to delete>`. Send.
-##### "Update" endpoint
+#### "Update" endpoint
 Set the request to **PUT** and paste the following into Postman's URL bar:
 `http://localhost:5002/api/posts/<ID of the post to update>`.
+
 ![img_1.png](static/update_demo_postman.png)
+
 Navigate below the URL bar to body, then below that to raw, set to JSON from the dropdown and 
 enter a JSON-format dictionary like so:
 ```json
 {
-  "content": "<your updated content>",
+  "content": "<your updated content>"
 }
 ```
 Send. Feel free to only include the fields which are being updated. The ID will be retained.
-##### "Search" Endpoint
+#### "Search" Endpoint
 Set the request to **GET** and paste this URL into Postman's URL bar: `http://localhost:5002/api/posts/search?`.
 In the 'Params' tab, include blog post fields to search for (case-insensitive). They will be automatically formatted
 into the query string.
+
 ![img.png](static/search_demo_postman.png)
+
 Send. The search returns all entries which match ANY of the criteria, rather than only returning entries
 which match all of them. 
-##### "Sort" Endpoint
+#### "Sort" Endpoint
 This is just the **"List"** endpoint with optional sorting parameters.
 Set the request to **GET**. Paste `http://localhost:5002/api/posts` in Postman's URL bar. In the 'Params' tab, include
 keys `sort` and/or `direction`. As the value for the sort key, enter a blog post field (title, author, content, date)
@@ -81,7 +85,7 @@ other than ID. Optionally, specify the `direction` as `asc` or `desc` based on p
 included, without `sort`, then the specified direction will apply to blog post IDs. 
 
 
-### Frontend demo screenshot:
+## Frontend demo screenshot:
 
 ![img.png](static/frontend_screenshot.png)
 
