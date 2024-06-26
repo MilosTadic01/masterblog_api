@@ -57,8 +57,7 @@ def add_post():
 
 @app.route('/api/posts/<int:post_id>', methods=['DELETE'])
 def delete_post(post_id: int):
-    """Rudimentary: if good id, remove the matching dict from storage. No
-    indication of failure, just goes back to index either way."""
+    """Rudimentary: if good id, remove the matching dict from storage."""
     if post_id not in Utils.list_extant_ids():
         abort(404)
     blog_posts = Utils.load_storage_data()
@@ -73,7 +72,7 @@ def delete_post(post_id: int):
 def update_post(post_id: int):
     """Update blog post. Retains unique id. Retains old values if new ones not
     specified. If bad post_id, early exit. Format updates into dict, remove
-    old_bp dict, then json.dumps() with new dict. Ret json updated_bp & 200"""
+    old_bp, then json.dumps() with new dict. Ret json updated_bp & 200"""
     if post_id not in Utils.list_extant_ids():
         abort(404)
     try:
