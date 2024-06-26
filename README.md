@@ -31,11 +31,11 @@ To install this project, clone the repository and install the dependencies liste
 From here on out you can choose to interact with the frontend (limited interface) or with  the backend via Postman.
 The frontend is running on port 5001. The backend is running on port 5002. If only interacting with the backend (more endpoints) through Postman, you only need to run `backend/backend_app.py`.
 
-### Webpage instructions
+### Frontend user interfacing (webpage) instructions
 1. Paste `http://127.0.0.1:5001/` in the URL bar of a browser
 2. The URL and the port to "Load Posts" from is `http://localhost:5002/api`
 3. You are able to view posts, add posts and delete posts.
-### Postman instructions
+### Backend user interfacing (Postman) instructions
 #### "List" endpoint
 Set the request to **GET**. Paste `http://localhost:5002/api/posts` in Postman's URL bar and send.
 #### "Add" endpoint
